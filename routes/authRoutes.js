@@ -7,40 +7,54 @@ const authMiddleware = require("../middleware/authMiddleware");
 
 const router = Router();
 
-const generateAccessToken = (id, type) => {
-  const payload = {
-    id,
-    type,
-  };
-  return jwt.sign(payload, secret, { expiresIn: "30d" });
-};
-
 router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
-    
-    console.log(req.body);
-
+    console.log(email, password);
     const user = await User.findOne({ email });
-
+    console.log(user);
     if (!user) {
       return res
         .status(400)
         .json({ errors: [{ message: `User doesn't exist` }] });
     }
 
-    const token = generateAccessToken(user._id, user.type);
-    return res.json({token, user: {_id: user._id, username: user.username, email: user.email, type: user.type}});
+    const isMatchPass = await bcrypt.compare(password, user.password);
 
+    if (!isMatchPass) {
+      return res
+        .status(400)
+        .json({
+          errors: [{ msg: `Wrong password or email` }],
+        });
+    }
+
+    const createdAtToken = Date.now();
+
+    const token = jwt.sign({id: user._id, type: user.type, createdAt: createdAtToken}, secret, { expiresIn: "30d" });
+
+    await user.updateOne({ lastTokenTimestamp: createdAtToken });
+
+    res.json({
+      token,
+      user: {
+        _id: user._id,
+        username: user.username,
+        email: user.email,
+        type: user.type,
+      },
+      createdAt: createdAtToken,
+    });
+
+    return res.json({ token });
   } catch (e) {
-    res.status(500).json({ errors: [{ message: `Server error` }] });
+    return res.status(500).json({ errors: [{ message: `Server error` }] });
   }
 });
 
 router.post("/register", async (req, res) => {
   try {
     const { email, password, type, username } = req.body;
-    console.log(req.body);
 
     const canditate = await User.findOne({ email });
 
@@ -52,17 +66,59 @@ router.post("/register", async (req, res) => {
 
     const hashPassword = bcrypt.hashSync(password, 7);
 
-    const user = new User({ email, password: hashPassword, type, username });
+    const user = new User({
+      email,
+      password: hashPassword,
+      type,
+      username,
+      lastTokenTimestamp: 0,
+    });
 
     await user.save();
 
-    const token = generateAccessToken(user._id, user.type);
-    return res.json({token, user: {_id: user._id, username: user.username, email: user.email, type: user.type}});
+    return res.json({
+      user: {
+        _id: user._id,
+        username: user.username,
+        email: user.email,
+        type: user.type,
+      },
+    });
 
     // return res.status(201).json({ message: `User created succesfully` });
   } catch (e) {
     console.error(e);
     return res.status(500).json({ errors: [{ message: `Server error` }] });
+  }
+});
+
+router.get("/logout", async (req, res) => {
+  try {
+    const token = jwt.sign({id: req.user.id}, secret, { expiresIn: "30d" });
+
+    return res.json({ token });
+  } catch (e) {
+    console.error(e);
+    return res.status(500).json({ errors: [{ message: `Server error` }] });
+  }
+});
+
+router.get(`/newToken`, authMiddleware, async (req, res) => {
+  try {
+    const createdAtToken = Date.now();
+
+    const token = jwt.sign({id: req.user.id, type: req.user.type, createdAt: createdAtToken}, secret, { expiresIn: "30d" });
+
+    await User.updateOne(
+      { _id: req.user.id },
+      { lastTokenTimestamp: createdAtToken }
+    );
+
+    return res.json({ token, userId: req.user.id, type: req.user.type, createdAt: createdAtToken });
+  } catch (e) {
+    return res
+      .status(500)
+      .json({ errors: [{ message: `Server error` }] });
   }
 });
 
