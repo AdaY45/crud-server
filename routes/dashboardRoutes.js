@@ -14,8 +14,6 @@ router.get("/", authMiddleware, async (req, res) => {
 
     const profiles = await Profile.find();
 
-    //const profileOver18 = profiles.filter(profile => profile.birthdate > ms18years);
-
     return res.json({ usersCount, profileCount, profiles })
   } catch (e) {
     return res.status(500).json({ errors: [{ message: `Server error` }] });

@@ -45,25 +45,25 @@ router.get("/", authMiddleware, async (req, res) => {
 
 router.patch("/edit", authMiddleware, async (req, res) => {
   try {
-    const { userId, ...restBody } = req.body;
-
+    console.log(req.body)
+    const { _id, ...restBody } = req.body;
     if (req.user.type !== `admin`) {
       return res
         .status(403)
         .json({ errors: [{ msg: `You don't have permission` }] });
     }
 
-    if (!userId) {
+    if (!_id) {
       return res
         .status(404)
         .json({ errors: [{ msg: `This user doesn't exist` }] });
     }
 
-    await User.updateOne({ _id: userId }, restBody);
-    res.json({ message: `User modified succesfully` });
+    await User.updateOne({ _id: _id }, restBody);
+    return res.json( {_id: _id, restBody });
   } catch (e) {
     console.log(e);
-    res.status(500).json({ errors: [{ msg: `Server error` }] });
+    return res.status(500).json({ errors: [{ msg: `Server error` }] });
   }
 });
 
@@ -96,10 +96,10 @@ router.delete(`/delete`, authMiddleware, async (req, res) => {
     }
 
     await User.deleteOne({ _id: userId });
-    res.json({ message: `User deleted` });
+    return res.json({ message: `User deleted` });
   } catch (e) {
     console.log(e);
-    res.status(500).json({ errors: [{ msg: `Server error` }] });
+    return res.status(500).json({ errors: [{ msg: `Server error` }] });
   }
 });
 

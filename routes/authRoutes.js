@@ -10,9 +10,7 @@ const router = Router();
 router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
-    console.log(email, password);
     const user = await User.findOne({ email });
-    console.log(user);
     if (!user) {
       return res
         .status(400)
@@ -35,7 +33,7 @@ router.post("/login", async (req, res) => {
 
     await user.updateOne({ lastTokenTimestamp: createdAtToken });
 
-    res.json({
+    return res.json({
       token,
       user: {
         _id: user._id,
@@ -46,7 +44,6 @@ router.post("/login", async (req, res) => {
       createdAt: createdAtToken,
     });
 
-    return res.json({ token });
   } catch (e) {
     return res.status(500).json({ errors: [{ message: `Server error` }] });
   }
@@ -84,8 +81,6 @@ router.post("/register", async (req, res) => {
         type: user.type,
       },
     });
-
-    // return res.status(201).json({ message: `User created succesfully` });
   } catch (e) {
     console.error(e);
     return res.status(500).json({ errors: [{ message: `Server error` }] });

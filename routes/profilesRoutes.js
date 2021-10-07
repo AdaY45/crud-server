@@ -31,10 +31,10 @@ router.get("/", authMiddleware, async (req, res) => {
 
 router.post("/create", authMiddleware, async (req, res) => {
   try {
-    const { birthdate, ...rest } = req.body;
+    const { birthdate, owner, ...rest } = req.body;
     const msBirthdate = +new Date(birthdate)
 
-    const profile = await Profile({ ...rest, birthdate: msBirthdate, owner: req.user.id });
+    const profile = await Profile({ ...rest, birthdate: msBirthdate, owner: owner !== null ? owner : req.user.id });
 
     await profile.save();
 

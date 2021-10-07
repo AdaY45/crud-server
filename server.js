@@ -7,11 +7,9 @@ const {dashboardRouter} = require('./routes/dashboardRoutes')
 const express = require('express') 
 const mongoose = require('mongoose') 
 const cors = require('cors')
-//const { authRouter } = require('./routes/auth.routes')
   
 const app = express()
-const  port = process.env.PORT || 5000 
-//const MONGO_URI = "mongodb+srv://AdaY45:52aKpJhQacdIMTda@cluster0.qetzy.mongodb.net/users?retryWrites=true&w=majority"
+const  port =  5000 
 const MONGO_URI = "mongodb://AdaY45:IVZnyMSnOhSGgOUY@cluster0-shard-00-00.qetzy.mongodb.net:27017,cluster0-shard-00-01.qetzy.mongodb.net:27017,cluster0-shard-00-02.qetzy.mongodb.net:27017/users?ssl=true&replicaSet=atlas-47nay2-shard-0&authSource=admin&retryWrites=true&w=majority"
 
 app.use(express.json())
