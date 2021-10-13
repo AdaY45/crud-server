@@ -33,7 +33,7 @@ router.post("/login", async (req, res) => {
 
     await user.updateOne({ lastTokenTimestamp: createdAtToken });
 
-    return res.json({
+    return res.status(201).json({
       token,
       user: {
         _id: user._id,
@@ -73,7 +73,7 @@ router.post("/register", async (req, res) => {
 
     await user.save();
 
-    return res.json({
+    return res.status(201).json({
       user: {
         _id: user._id,
         username: user.username,
@@ -87,16 +87,16 @@ router.post("/register", async (req, res) => {
   }
 });
 
-router.get("/logout", async (req, res) => {
-  try {
-    const token = jwt.sign({id: req.user.id}, secret, { expiresIn: "30d" });
+// router.get("/logout", async (req, res) => {
+//   try {
+//     const token = jwt.sign({id: req.user.id}, secret, { expiresIn: "30d" });
 
-    return res.json({ token });
-  } catch (e) {
-    console.error(e);
-    return res.status(500).json({ errors: [{ message: `Server error` }] });
-  }
-});
+//     return res.status(201).json({ token });
+//   } catch (e) {
+//     console.error(e);
+//     return res.status(500).json({ errors: [{ message: `Server error` }] });
+//   }
+// });
 
 router.get(`/newToken`, authMiddleware, async (req, res) => {
   try {
@@ -109,7 +109,7 @@ router.get(`/newToken`, authMiddleware, async (req, res) => {
       { lastTokenTimestamp: createdAtToken }
     );
 
-    return res.json({ token, userId: req.user.id, type: req.user.type, createdAt: createdAtToken });
+    return res.status(201).json({ token, userId: req.user.id, type: req.user.type, createdAt: createdAtToken });
   } catch (e) {
     return res
       .status(500)

@@ -13,7 +13,7 @@ router.get("/:id", authMiddleware, async (req, res) => {
           : req.user.id,
     });
 
-    return res.json(profiles);
+    return res.status(201).json(profiles);
   } catch (e) {
     return res.status(500).json({ errors: [{ message: `Server error` }] });
   }
@@ -23,7 +23,7 @@ router.get("/", authMiddleware, async (req, res) => {
   try {
     const profiles = await Profile.find();
 
-    return res.json(profiles);
+    return res.status(201).json(profiles);
   } catch (e) {
     return res.status(500).json({ errors: [{ message: `Server error` }] });
   }
@@ -32,13 +32,17 @@ router.get("/", authMiddleware, async (req, res) => {
 router.post("/create", authMiddleware, async (req, res) => {
   try {
     const { birthdate, owner, ...rest } = req.body;
-    const msBirthdate = +new Date(birthdate)
+    const msBirthdate = +new Date(birthdate);
 
-    const profile = await Profile({ ...rest, birthdate: msBirthdate, owner: owner !== null ? owner : req.user.id });
+    const profile = await Profile({
+      ...rest,
+      birthdate: msBirthdate,
+      owner: owner !== null ? owner : req.user.id,
+    });
 
     await profile.save();
 
-    return res.json(profile);
+    return res.status(201).json(profile);
   } catch (e) {
     return res.status(500).json({ errors: [{ message: `Server error` }] });
   }
@@ -53,14 +57,21 @@ router.patch("/edit", authMiddleware, async (req, res) => {
     const profile = await Profile.findOne({ _id });
 
     if (!profile) {
-      throw { errors: [{ message: `Profile doesn't exit` }] };
+      return res
+        .status(400)
+        .json({ errors: [{ message: `Profile doesn't exit` }] });
     }
 
-    if (`${profile.owner}` === req.user.id || req.user.type === `admin`) {
-      await Profile.updateOne({ _id }, { ...profileData, birthdate: msBirthdate });
-      return res.json({ message: `Profile succesfully updated!` });
+    if (profile.owner === req.user.id || req.user.type === `admin`) {
+      await Profile.updateOne(
+        { _id },
+        { ...profileData, birthdate: msBirthdate }
+      );
+      return res.status(201).json({ message: `Profile succesfully updated!` });
     } else {
-      return res.status(400).json({ errors: [{ message: `Profile is not yours` }] });
+      return res
+        .status(400)
+        .json({ errors: [{ message: `Profile is not yours` }] });
     }
   } catch (e) {
     return res.status(500).json({ errors: [{ message: `Server error` }] });
@@ -78,9 +89,11 @@ router.delete("/delete", authMiddleware, async (req, res) => {
     if (`${profile.owner}` === req.user.id || req.user.type === `admin`) {
       await Profile.deleteOne({ _id: req.body._id });
 
-      return res.json({ message: `Profile succesfully deleted!` });
+      return res.status(201).json({ message: `Profile succesfully deleted!` });
     } else {
-      return res.status(400).json({ errors: [{ message: `Profile is not yours` }] });
+      return res
+        .status(400)
+        .json({ errors: [{ message: `Profile is not yours` }] });
     }
   } catch (e) {
     return res.status(500).json({ errors: [{ message: `Server error` }] });

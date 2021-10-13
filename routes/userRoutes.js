@@ -9,17 +9,13 @@ router.get("/:id", authMiddleware, async (req, res) => {
   try {
     const userId = req.params.id;
 
-    if (!userId) {
-      return res.status(400).json({ message: "Empty user id" });
-    }
-
     const user = await User.findOne({ _id: userId });
 
     if (!user) {
       return res.status(400).json({ message: "This user doesn't exist" });
     }
 
-    return res.json({
+    return res.status(201).json({
       username: user.username,
       email: user.email,
       type: user.type,
@@ -45,7 +41,6 @@ router.get("/", authMiddleware, async (req, res) => {
 
 router.patch("/edit", authMiddleware, async (req, res) => {
   try {
-    console.log(req.body)
     const { _id, ...restBody } = req.body;
     if (req.user.type !== `admin`) {
       return res
@@ -60,7 +55,7 @@ router.patch("/edit", authMiddleware, async (req, res) => {
     }
 
     await User.updateOne({ _id: _id }, restBody);
-    return res.json( {_id: _id, restBody });
+    return res.status(201).json( {_id: _id, restBody });
   } catch (e) {
     console.log(e);
     return res.status(500).json({ errors: [{ msg: `Server error` }] });
@@ -83,12 +78,6 @@ router.delete(`/delete`, authMiddleware, async (req, res) => {
       return res.status(404).json({ errors: [{ msg: `User not found` }] });
     }
 
-    const data = await Profile.deleteMany({
-      _id: {
-        $in: user.profiles,
-      },
-    });
-
     if (!userId) {
       return res
         .status(404)
@@ -96,7 +85,7 @@ router.delete(`/delete`, authMiddleware, async (req, res) => {
     }
 
     await User.deleteOne({ _id: userId });
-    return res.json({ message: `User deleted` });
+    return res.status(201).json({ message: `User deleted` });
   } catch (e) {
     console.log(e);
     return res.status(500).json({ errors: [{ msg: `Server error` }] });
