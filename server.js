@@ -11,8 +11,8 @@ const cors = require("cors");
 const app = express();
 const port = 5000;
 const MONGO_URI =
-  "mongodb://AdaY45:IVZnyMSnOhSGgOUY@cluster0-shard-00-00.qetzy.mongodb.net:27017,cluster0-shard-00-01.qetzy.mongodb.net:27017,cluster0-shard-00-02.qetzy.mongodb.net:27017/users?ssl=true&replicaSet=atlas-47nay2-shard-0&authSource=admin&retryWrites=true&w=majority";
-
+  "mongodb://AdaY45:FnpGzTBqQ6MTNLu3@cluster0-shard-00-00.qetzy.mongodb.net:27017,cluster0-shard-00-01.qetzy.mongodb.net:27017,cluster0-shard-00-02.qetzy.mongodb.net:27017/users?ssl=true&replicaSet=atlas-47nay2-shard-0&authSource=admin&retryWrites=true&w=majority";
+  
 app.use(express.json());
 app.use(cors());
 app.use("/api/auth", authRouter);
